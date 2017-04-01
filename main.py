@@ -38,6 +38,7 @@ class MainHandler(webapp2.RequestHandler):
 
         loginForm = """
             <div id="login" class="container">
+                <h1>User Signup</h1>
                 <form action="/signup" method="post">
                     <label id="username"><span>Username: <input type="text" name="userName"/></span></label>
                     <label id="password"><span>Password: <input type="password" name="password"/></span></label>
@@ -52,8 +53,21 @@ class MainHandler(webapp2.RequestHandler):
 
 class Signup(webapp2.RequestHandler):
 
+    def checkUserName(self, userName):
+        userName_RE = re.compile("^[a-zA-Z0-9_-]{3,20}$")
+        return userName_RE.match(userName)
+
+    def checkPassword(self, password):
+        password_RE = re.compile("^.{3,20}$")
+        return password_RE.match(password)
+
+    def checkEmail(self, email):
+        email_RE = re.compile("^[\S]+@[\S]+.[\S]+$")
+        return email_RE.match(email)
+
+
     def post(self):
-        isValid = {"userName":True, "password":True, "email":True} # CHANGE TO None AFTER TESTING
+        isValid = {"userName":None, "password":None, "email":None} # CHANGE TO None AFTER TESTING
 
         errors = ''
 
@@ -63,10 +77,32 @@ class Signup(webapp2.RequestHandler):
         email = self.request.get("email")
 
 
-        if (isValid['userName'] == True and
+        if self.checkUserName(userName):
+            isValid["userName"] = True
+        else:
+            errors += "&userNameError={0}".format(userName)
+
+        if len(password) <= 8:
+            errors += "&passwordError=short"
+        elif password != password_check:
+            errors += "&passwordError=nomatch"
+        elif self.checkPassword(password):
+            isValid["password"] = True
+        else:
+            errors += "&passwordError=invalid"
+
+        if email == None or len(email) < 1:
+            isValid["email"] = True
+        elif self.checkEmail(email):
+            isValid["email"] = True
+        else:
+            errors += "&emailError=invalid"
+
+
+        if (isValid['userName'] == True and #-- Check that things are valid
             isValid['password'] == True and
             isValid['email'] == True and
-            userName == self.request.get("userName") and
+            userName == self.request.get("userName") and #-- Doublecheck inputs
             password == self.request.get("password") and
             email == self.request.get("email")):
 
