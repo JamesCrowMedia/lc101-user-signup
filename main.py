@@ -22,8 +22,8 @@ header = """
     <!DOCTYPE html>
     <html>
     <head>
+        <link rel="stylesheet" type="text/css" href="stylesheets/style.css" />
         <title>User Signup</title>
-        <link rel="stylesheet" type="text/css" href="style.css">
     </head>
     <body>
 """
