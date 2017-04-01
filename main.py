@@ -33,6 +33,9 @@ footer = """
     </html>
 """
 
+errors = {'userNameError':'', 'passwordError':'', 'emailError':'', 'unknownError':''}
+error_html = ['','','','']
+
 class MainHandler(webapp2.RequestHandler):
     def get(self):
 
@@ -40,14 +43,27 @@ class MainHandler(webapp2.RequestHandler):
             <div id="login" class="container">
                 <h1>User Signup</h1>
                 <form action="/signup" method="post">
-                    <label id="username"><span>Username: <input type="text" name="userName"/></span></label>
-                    <label id="password"><span>Password: <input type="password" name="password"/></span></label>
+                    <label id="username" {0}><span>Username: <input type="text" name="userName" {1}/></span></label>
+                    {2}
+                    <label id="password" {3}><span>Password: <input type="password" name="password"/></span></label>
+                    {4}
                     <label id="password-check"><span>Repeat Password: <input type="password" name="password-check"/></span></label>
-                    <label id="email"><span>Email: <input type="text" name="email"/></span></label>
+                    <label id="email" {5}><span>Email: <input type="text" name="email"/></span></label>
+                    {6}
                     <input type="submit" class="submit" value="Create Your Account"/>
+                    {7}
                 </form>
             </div>
-        """
+        """.format( error_html[0],              # 0
+                    error_html[1],              # 1
+                    errors['userNameError'],    # 2
+                    error_html[2],              # 3
+                    errors['passwordError'],    # 4
+                    error_html[3],              # 5
+                    errors['emailError'],       # 6
+                    errors['unknownError'])     # 7
+
+
         content = header + loginForm + footer
         self.response.write(content)
 
@@ -69,8 +85,6 @@ class Signup(webapp2.RequestHandler):
     def post(self):
         isValid = {"userName":None, "password":None, "email":None} # CHANGE TO None AFTER TESTING
 
-        errors = ''
-
         userName = self.request.get("userName")
         password = self.request.get("password")
         password_check = self.request.get("password-check")
@@ -80,23 +94,29 @@ class Signup(webapp2.RequestHandler):
         if self.checkUserName(userName):
             isValid["userName"] = True
         else:
-            errors += "&userNameError={0}".format(userName)
+            errors["userNameError"] = '<div class="errorBox">Invalid Username</div>'
+            error_html[0] = 'class="error"'
+            error_html[1] = 'value="{0}"'.format(userName)
 
         if len(password) <= 8:
-            errors += "&passwordError=short"
+            errors["passwordError"] = '<div class="errorBox">Your password needs to be at least 8 characters long</div>'
+            error_html[2] = 'class="error"'
         elif password != password_check:
-            errors += "&passwordError=nomatch"
+            errors["passwordError"] = '<div class="errorBox">Your passwords do not match</div>'
+            error_html[2] = 'class="error"'
         elif self.checkPassword(password):
             isValid["password"] = True
         else:
-            errors += "&passwordError=invalid"
+            errors["passwordError"] = '<div class="errorBox">Your password is invalid</div>'
+            error_html[2] = 'class="error"'
 
         if email == None or len(email) < 1:
             isValid["email"] = True
         elif self.checkEmail(email):
             isValid["email"] = True
         else:
-            errors += "&emailError=invalid"
+            errors["emailError"] = '<div class="errorBox">Your email is invalid</div>'
+            error_html[3] = 'class="error"'
 
 
         if (isValid['userName'] == True and #-- Check that things are valid
@@ -118,12 +138,8 @@ class Signup(webapp2.RequestHandler):
             """.format(esc_userName)
             content = header + success + footer
             self.response.write(content)
-
-        elif errors != '':
-            self.redirect("/?" + errors)
-
         else:
-            self.redirect("/?unknownError=True")
+            self.redirect("/?error=True")
 
 
 
