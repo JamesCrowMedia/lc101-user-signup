@@ -32,26 +32,23 @@ footer = """
     </body>
     </html>
 """
-
-errors = {'userNameError':'', 'passwordError':'', 'emailError':'', 'unknownError':''}
-error_html = ['','','','']
-
-class MainHandler(webapp2.RequestHandler):
-    def get(self):
-
-        loginForm = """
+def getLoginForm():
+    return """
             <div id="login" class="container">
-                <h1>User Signup</h1>
+                <h1>
+                    <a href="/">User Signup</a>
+                </h1>
                 <form action="/signup" method="post">
-                    <label id="username" {0}><span>Username: <input type="text" name="userName" {1}/></span></label>
-                    {2}
-                    <label id="password" {3}><span>Password: <input type="password" name="password"/></span></label>
-                    {4}
-                    <label id="password-check"><span>Repeat Password: <input type="password" name="password-check"/></span></label>
-                    <label id="email" {5}><span>Email: <input type="text" name="email"/></span></label>
-                    {6}
+                    <label id="username" {0}><span>Username: </span><input type="text" name="userName" {1}/></label>
+                    <div class="spacer">{2}</div>
+                    <label id="password" {3}><span>Password: </span><input type="password" name="password"/></label>
+                    <div class="spacer">{4}</div>
+                    <label id="password-check"><span>Repeat Password: </span><input type="password" name="password-check"/></label>
+                    <div class="spacer"></div>
+                    <label id="email" {5}><span>Email: </span><input type="text" name="email" {6}/></label>
+                    <div class="spacer">{7}</div>
                     <input type="submit" class="submit" value="Create Your Account"/>
-                    {7}
+                    {8}
                 </form>
             </div>
         """.format( error_html[0],              # 0
@@ -60,9 +57,21 @@ class MainHandler(webapp2.RequestHandler):
                     error_html[2],              # 3
                     errors['passwordError'],    # 4
                     error_html[3],              # 5
-                    errors['emailError'],       # 6
-                    errors['unknownError'])     # 7
+                    error_html[4],              # 6
+                    errors['emailError'],       # 7
+                    errors['unknownError'])     # 8
 
+errors = {'userNameError':'', 'passwordError':'', 'emailError':'', 'unknownError':''}
+error_html = ['','','','','']
+
+class MainHandler(webapp2.RequestHandler):
+    def get(self):
+        loginForm = getLoginForm()
+
+        for k in errors.keys():
+            errors[k] = ''
+        for i in xrange(len(error_html)):
+            error_html[i] = ''
 
         content = header + loginForm + footer
         self.response.write(content)
@@ -90,16 +99,16 @@ class Signup(webapp2.RequestHandler):
         password_check = self.request.get("password-check")
         email = self.request.get("email")
 
-
         if self.checkUserName(userName):
             isValid["userName"] = True
+            error_html[1] = 'value="{0}"'.format(cgi.escape(userName))
         else:
             errors["userNameError"] = '<div class="errorBox">Invalid Username</div>'
             error_html[0] = 'class="error"'
-            error_html[1] = 'value="{0}"'.format(userName)
+            error_html[1] = 'value="{0}"'.format(cgi.escape(userName))
 
         if len(password) <= 8:
-            errors["passwordError"] = '<div class="errorBox">Your password needs to be at least 8 characters long</div>'
+            errors["passwordError"] = '<div class="errorBox">Must be at least 8 characters long</div>'
             error_html[2] = 'class="error"'
         elif password != password_check:
             errors["passwordError"] = '<div class="errorBox">Your passwords do not match</div>'
@@ -114,9 +123,11 @@ class Signup(webapp2.RequestHandler):
             isValid["email"] = True
         elif self.checkEmail(email):
             isValid["email"] = True
+            error_html[4] = 'value="{0}"'.format(cgi.escape(email))
         else:
             errors["emailError"] = '<div class="errorBox">Your email is invalid</div>'
             error_html[3] = 'class="error"'
+            error_html[4] = 'value="{0}"'.format(cgi.escape(email))
 
 
         if (isValid['userName'] == True and #-- Check that things are valid
@@ -131,15 +142,18 @@ class Signup(webapp2.RequestHandler):
 
             success = """
                 <div class="container">
-                    <h1>Success!</h1>
-                    <h3>Welcome <strong>{0}</strong>!</h3>
+                    <h1>
+                        <a href="/">Success!</a>
+                    </h1>
+                    <h3>Welcome, <strong>{0}</strong>!</h3>
                     <p>You have successfully created and account.</p>
+                    <p><a class="goHome" href="/">Click here to return</a></p>
                 </div>
             """.format(esc_userName)
             content = header + success + footer
             self.response.write(content)
         else:
-            self.redirect("/?error=True")
+            self.redirect("/")
 
 
 
