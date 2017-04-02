@@ -146,7 +146,7 @@ class Signup(webapp2.RequestHandler):
                         <a href="/">Success!</a>
                     </h1>
                     <h3>Welcome, <strong>{0}</strong>!</h3>
-                    <p>You have successfully created and account.</p>
+                    <p>You have successfully created an account.</p>
                     <p><a class="goHome" href="/">Click here to return</a></p>
                 </div>
             """.format(esc_userName)
